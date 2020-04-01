@@ -17,7 +17,7 @@
     font-weight: bold;
   }
 
-  .list-group li:hover{
+  .list-group li:hover, button:hover{
     cursor: pointer;
   }
   
