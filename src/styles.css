@@ -1,0 +1,25 @@
+.App {
+    font-family: sans-serif;
+    text-align: center;
+  }
+  
+  .detail-block {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom:20px;
+  }
+  
+  .detail-block div.tab-list {
+    padding-left: 30px;
+  }
+  
+  .detail-block div span {
+    font-weight: bold;
+  }
+
+  .list-group li:hover{
+    cursor: pointer;
+  }
+  
+ 
+  
