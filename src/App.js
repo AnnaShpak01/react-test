@@ -23,12 +23,10 @@ const API = "https://jsonplaceholder.typicode.com/users";
 
 class UserDetail extends React.Component {
   render() {
-    const users = this.props.users;
-
-    if (this.props.activeId === 0) {
+    if (this.props.user === undefined) {
       return <div />;
     } else {
-      const user = users.filter(elem => elem.id === this.props.activeId)[0];
+      const user = this.props.user;
       return (
         <div>
           <h4 className="mt-5">Information about active user</h4>
@@ -62,14 +60,14 @@ class UserDetail extends React.Component {
                 </div>
                 <div>
                   <span>Zip Code: </span>
-                  {user.address.zipcode}{" "}
+                  {user.address.zipcode}
                 </div>
                 <div>
                   <span>Geo: </span>
                   <div className="tab-list">
                     <div>
                       <span>Lat: </span>
-                      {user.address.geo.lat}{" "}
+                      {user.address.geo.lat}
                     </div>
                     <div>
                       <span>Lng: </span>
@@ -98,7 +96,7 @@ class UserDetail extends React.Component {
                   <span>Catch Phrase: </span> {user.company.catchPhrase}
                 </div>
                 <div>
-                  <span>Bs: </span> {user.company.bs}{" "}
+                  <span>Bs: </span> {user.company.bs}
                 </div>
               </div>
             </div>
@@ -109,7 +107,7 @@ class UserDetail extends React.Component {
   }
 }
 
-class ProductRow extends React.Component {
+class UserRow extends React.Component {
   render() {
     const user = this.props.user;
 
@@ -126,29 +124,25 @@ class ProductRow extends React.Component {
 }
 
 class UserList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.renderUsers = this.renderUsers.bind(this);
+  }
+  renderUsers(users) {
+    return users.map(user => (
+      <UserRow
+        user={user}
+        key={user.name}
+        changeActive={this.props.changeActive}
+      />
+    ));
+  }
+
   render() {
-    const filterText = this.props.filterText;
-
-    const rows = [];
-
-    this.props.users.forEach(user => {
-      if (user.name.toLowerCase().indexOf(filterText.toLowerCase()) === -1) {
-        return;
-      }
-
-      rows.push(
-        <ProductRow
-          changeActive={this.props.changeActive}
-          user={user}
-          key={user.name}
-        />
-      );
-    });
-
     return (
       <div>
         <h4>Users</h4>
-        <ul className="list-group">{rows}</ul>
+        <ul className="list-group">{this.renderUsers(this.props.users)}</ul>
       </div>
     );
   }
@@ -157,70 +151,26 @@ class UserList extends React.Component {
 class SearchBar extends React.Component {
   constructor(props) {
     super(props);
-    this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
-  }
-
-  handleFilterTextChange(e) {
-    this.props.onFilterTextChange(e.target.value);
-  }
-
-  render() {
-    return (
-      <input
-        type="text"
-        className="form-control"
-        placeholder="Search Users"
-        value={this.props.filterText}
-        onChange={this.handleFilterTextChange}
-        ref="myTestInput"
-      />
-    );
-  }
-}
-
-export default class App extends React.Component {
-  constructor(props) {
-    super(props);
     this.state = {
-      filterText: "",
-      isClear: false,
-      users: [],
-      activeId: 0
+      inputState: ""
     };
-    this.changeActive = this.changeActive.bind(this);
+    this.onFilterTextChange = this.onFilterTextChange.bind(this);
     this.onBtnClickHandler = this.onBtnClickHandler.bind(this);
-    this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
   }
 
-  changeActive(newIndex) {
-    this.setState({ activeId: newIndex });
-  }
-
-  handleFilterTextChange(filterText) {
-    this.setState({
-      filterText: filterText
-    });
+  onFilterTextChange(e) {
+    this.props.toFilterUsers(e.target.value);
+    this.setState({ inputState: e.target.value });
   }
 
   onBtnClickHandler() {
-    this.handleFilterTextChange("");
-  }
-
-  async componentDidMount() {
-    const response = await fetch(API);
-    const responseJson = await response.json();
-    const activatedUsers = responseJson.map(dataItem => ({
-      ...dataItem
-      // ,
-      // isActive: false
-    }));
-    this.setState({ users: activatedUsers });
+    this.props.toFilterUsers("");
+    this.setState({ inputState: "" });
   }
 
   render() {
-    const { users } = this.state;
     return (
-      <div className="container mt-5">
+      <React.Fragment>
         <h2>Search Users</h2>
         <div className="input-group mb-5 mt-3">
           <div className="input-group-prepend">
@@ -232,19 +182,62 @@ export default class App extends React.Component {
               <span>X</span>
             </button>
           </div>
-          <SearchBar
-            filterText={this.state.filterText}
-            onFilterTextChange={this.handleFilterTextChange}
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search Users"
+            onChange={this.onFilterTextChange}
+            value={this.state.inputState}
           />
         </div>
-        <UserList
-          changeActive={this.changeActive}
-          users={users}
-          filterText={this.state.filterText}
-        />
-        <UserDetail users={users} activeId={this.state.activeId} />
-      </div>
+      </React.Fragment>
     );
   }
 }
 
+export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      users: [],
+      filteredUsers: [],
+      activeId: 0
+    };
+    this.changeActive = this.changeActive.bind(this);
+    this.toFilterUers = this.toFilterUers.bind(this);
+  }
+
+  toFilterUers(filterText) {
+    const users = this.state.users;
+    const filtered = users.filter(user => {
+      return user.name.toLowerCase().includes(filterText.toLowerCase());
+    });
+    this.setState({
+      filteredUsers: filtered
+    });
+  }
+
+  changeActive(newIndex) {
+    this.setState({ activeId: newIndex });
+  }
+
+  async componentDidMount() {
+    const response = await fetch(API);
+    const responseJson = await response.json();
+    this.setState({ users: responseJson, filteredUsers: responseJson });
+  }
+
+  render() {
+    const users = this.state.users;
+    const filteredUsers = this.state.filteredUsers;
+    return (
+      <div className="container mt-5">
+        <SearchBar toFilterUsers={this.toFilterUers} />
+        <UserList changeActive={this.changeActive} users={filteredUsers} />
+        <UserDetail
+          user={users.find(user => user.id === this.state.activeId)}
+        />
+      </div>
+    );
+  }
+}
