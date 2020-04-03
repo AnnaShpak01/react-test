@@ -24,97 +24,95 @@ const API = "https://jsonplaceholder.typicode.com/users";
 function UserDetail({user}){
   
   if (user === undefined) {
-    return <div />;
-  } else {
-    return (
-      <div>
-        <h4 className="mt-5">Information about active user</h4>
-        <div className="detail-block">
-          <div>
-            <span>Name: </span>
-            {user.name}
-          </div>
-          <div>
-            <span>Username: </span>
-            {user.username}
-          </div>
-          <div>
-            <span>E-mail: </span>
-            {user.email}
-          </div>
-          <div>
-            <span>Address: </span>
-            <div className="tab-list">
-              <div>
-                <span>Street: </span>
-                {user.address.street}
-              </div>
-              <div>
-                <span>Suite: </span>
-                {user.address.suite}
-              </div>
-              <div>
-                <span>City: </span>
-                {user.address.city}
-              </div>
-              <div>
-                <span>Zip Code: </span>
-                {user.address.zipcode}
-              </div>
-              <div>
-                <span>Geo: </span>
-                <div className="tab-list">
-                  <div>
-                    <span>Lat: </span>
-                    {user.address.geo.lat}
-                  </div>
-                  <div>
-                    <span>Lng: </span>
-                    {user.address.geo.lng}
-                  </div>
+    return null;
+  } 
+  return (
+    <div>
+      <h4 className="mt-5">Information about active user</h4>
+      <div className="detail-block">
+        <div>
+          <span>Name: </span>
+          {user.name}
+        </div>
+        <div>
+          <span>Username: </span>
+          {user.username}
+        </div>
+        <div>
+          <span>E-mail: </span>
+          {user.email}
+        </div>
+        <div>
+          <span>Address: </span>
+          <div className="tab-list">
+            <div>
+              <span>Street: </span>
+              {user.address.street}
+            </div>
+            <div>
+              <span>Suite: </span>
+              {user.address.suite}
+            </div>
+            <div>
+              <span>City: </span>
+              {user.address.city}
+            </div>
+            <div>
+              <span>Zip Code: </span>
+              {user.address.zipcode}
+            </div>
+            <div>
+              <span>Geo: </span>
+              <div className="tab-list">
+                <div>
+                  <span>Lat: </span>
+                  {user.address.geo.lat}
+                </div>
+                <div>
+                  <span>Lng: </span>
+                  {user.address.geo.lng}
                 </div>
               </div>
             </div>
           </div>
-          <div>
-            <span>Phone: </span>
-            {user.phone}
-          </div>
-          <div>
-            <span>Website: </span>
-            {user.website}
-          </div>
-          <div>
-            <span>Company: </span>
-            <div className="tab-list">
-              <div>
-                <span>Name: </span>
-                {user.company.name}
-              </div>
-              <div>
-                <span>Catch Phrase: </span> {user.company.catchPhrase}
-              </div>
-              <div>
-                <span>Bs: </span> {user.company.bs}
-              </div>
+        </div>
+        <div>
+          <span>Phone: </span>
+          {user.phone}
+        </div>
+        <div>
+          <span>Website: </span>
+          {user.website}
+        </div>
+        <div>
+          <span>Company: </span>
+          <div className="tab-list">
+            <div>
+              <span>Name: </span>
+              {user.company.name}
+            </div>
+            <div>
+              <span>Catch Phrase: </span> {user.company.catchPhrase}
+            </div>
+            <div>
+              <span>Bs: </span> {user.company.bs}
             </div>
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+  
 
 }
 
-function UserRow(props) {
+function UserRow({user,changeActive}) {
     
-  const user = props.user;
-
   return (
     <li
       key={user.id}
       className="list-group-item"
-      onClick={() => props.changeActive(user.id)}
+      onClick={() => changeActive(user.id)}
     >
       <span>{user.name} </span> -<em> {user.email}</em>
     </li>
@@ -122,14 +120,14 @@ function UserRow(props) {
   
 }
 
-function UserList(props) {
+function UserList({users, changeActive}) {
   
   const renderUsers = (users) => {
     return users.map(user => (
       <UserRow
         user={user}
         key={user.name}
-        changeActive={props.changeActive}
+        changeActive={changeActive}
       />
     ));
   }
@@ -137,22 +135,22 @@ function UserList(props) {
     return (
       <div>
         <h4>Users</h4>
-        <ul className="list-group">{renderUsers(props.users)}</ul>
+        <ul className="list-group">{renderUsers(users)}</ul>
       </div>
     );
 }
 
-function SearchBar(props) {
+function SearchBar({toFilterUsers}) {
 
   const [inputState, setInput] = useState("");
 
   const onFilterTextChange = (e) => {
-    props.toFilterUsers(e.target.value);
+    toFilterUsers(e.target.value);
     setInput(e.target.value );
   }
 
   const onBtnClickHandler = () => {
-    props.toFilterUsers("");
+    toFilterUsers("");
     setInput("");
   }
 
@@ -184,14 +182,11 @@ function SearchBar(props) {
 export default function App() {
   
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [filterText, setFilterText] = useState("");
   const [activeId, setActiveId] = useState(0);
 
-  const toFilterUsers = (filterText) => {
-    const filtered = users.filter(user => {
-      return user.name.toLowerCase().includes(filterText.toLowerCase());
-    });
-    setFilteredUsers(filtered);
+  const toFilterUsers = (newFilterText) => {
+    setFilterText(newFilterText);
   }
 
   const changeActive = (newIndex) => {
@@ -202,7 +197,6 @@ export default function App() {
     const response = await fetch(API);
     const responseJson = await response.json();
     setUsers(responseJson);
-    setFilteredUsers(responseJson);
   }
 
   useEffect(() => {
@@ -212,9 +206,9 @@ export default function App() {
     return (
       <div className="container mt-5">
         <SearchBar toFilterUsers={toFilterUsers} />
-        <UserList changeActive={changeActive} users={filteredUsers} />
-        <UserDetail
-          user={users.find(user => user.id === activeId)}
+        <UserList changeActive={changeActive} 
+                  users={users.filter(user => { return user.name.toLowerCase().includes(filterText.toLowerCase())})} />
+        <UserDetail user={users.find(user => user.id === activeId)}
         />
       </div>
     );
